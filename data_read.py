@@ -16,7 +16,3 @@ class Data:
 
     def recNo(self):
         return [row[1]["RecNo"] for row in (self.df).iterrows()]
-
-filename = 'Data/u01_movements_wr-su_d_rt_100_20230118-1502.csv'
-
-# print(len(yData))

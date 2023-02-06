@@ -36,31 +36,41 @@ df = df[np.abs(df["AceelroZ"] - df["AceelroZ"].mean())<=(3*df["AceelroZ"].std())
 scaler = preprocessing.StandardScaler()
 df[["AccelroX", "AceelroY", "AceelroZ"]] = scaler.fit_transform(df[["AccelroX", "AceelroY", "AceelroZ"]])
 
-# # Split the data into windows
-# window_size = 505
-# stride = 450
-# num_windows = int((len(df) - window_size) / stride) + 1
-# windows = [df[i:i + window_size] for i in range(0, num_windows * stride, stride)]
+# Split the data into windows
+window_size = 505
+stride = 450
+num_windows = int((len(df) - window_size) / stride) + 1
+windows = [df[i:i + window_size] for i in range(0, num_windows * stride, stride)]
 
-# # Label the windows
-# labels = [df["MoveType"][i + window_size // 2] for i in range(0, num_windows * stride, stride)]
+# Label the windows
+labels = [df["MoveType"][i + window_size // 2] for i in range(0, num_windows * stride, stride)]
 
-# # Split the windows into training and testing sets
-# train_windows = windows[:int(0.8 * num_windows)]
-# train_labels = labels[:int(0.8 * num_windows)]
-# test_windows = windows[int(0.8 * num_windows):]
-# test_labels = labels[int(0.8 * num_windows):]
+# Split the windows into training and testing sets
+train_windows = windows[:int(0.8 * num_windows)]
+train_labels = labels[:int(0.8 * num_windows)]
+test_windows = windows[int(0.8 * num_windows):]
+test_labels = labels[int(0.8 * num_windows):]
+
 
 # # Create the plot
 # for window, label in zip(train_windows, train_labels):
-#     plt.plot(window["AccelroX"], label = label)
+#     plt.plot(window["AceelroY"], label = label)
 # plt.xlabel("Time")
-# plt.ylabel("Accelerometer X")
+# plt.ylabel("Accelerometer Y")
 # plt.legend()
 # plt.show()
 
-plt.plot(yData(df), 'm', linestyle = 'dotted')
-        
-plt.xlabel("Time (s)")
-plt.ylabel("Acceleration (m/s^2)")
+for window in windows:
+        plt.plot(window["DMGrvY"])
+plt.xlabel("Time")
+plt.ylabel("Accelerometer X")
 plt.show()
+
+# plt.plot(df[["AccelroX"]], 'm', linestyle = 'dotted')
+        
+# plt.xlabel("Time (s)")
+# plt.ylabel("Acceleration (m/s^2)")
+# plt.show()
+
+# print(windows[5])
+# print(df.loc[1022])

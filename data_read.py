@@ -41,41 +41,40 @@ def plot2(windows, labels, column):
     plt.show()
         
 
-df = pd.read_csv('Data/u01_movements_wr-su_d_rt_100_20230118-1502.csv')
+df = pd.read_csv('Data/u02_movements_el-ex_nd_lt_100_20230215-1533.csv')
 
-# Remove any missing or outlier data
-df = df.dropna()
-df = df[np.abs(df["AccelroX"] - df["AccelroX"].mean())<=(3*df["AccelroX"].std())]
-df = df[np.abs(df["AceelroY"] - df["AceelroY"].mean())<=(3*df["AceelroY"].std())]
-df = df[np.abs(df["AceelroZ"] - df["AceelroZ"].mean())<=(3*df["AceelroZ"].std())]
-df = df[np.abs(df["DMGrvY"] - df["DMGrvY"].mean())<=(3*df["DMGrvY"].std())]
+"""
 
-# Normalise the data
-scaler = preprocessing.StandardScaler()
-df[["AccelroX", "AceelroY", "AceelroZ", "DMGrvY"]] = scaler.fit_transform(df[["AccelroX", "AceelroY", "AceelroZ", "DMGrvY"]])
+u01_movements_el-ex_nd_lt_100_20230215-1527
+u01_movements_el-ex_nd_lt_100_20230215-1528
 
-# Split the data into windows
-window_size = 505
-stride = 250
-num_windows = int((len(df) - window_size) / stride) + 1
-windows = [df[i:i + window_size] for i in range(0, num_windows * stride, stride)]
+u02_movements_el-ex_nd_lt_100_20230215-1532
+u02_movements_el-ex_nd_lt_100_20230215-1533
+u02_movements_el-ex_nd_lt_100_20230215-1535
+u02_movements_el-ex_nd_lt_100_20230215-1536
+u02_movements_el-ex_nd_lt_100_20230215-1541
+u02_movements_el-ex_nd_lt_100_20230215-1542
+u02_movements_el-ex_nd_lt_100_20230215-1545
+u02_movements_el-ex_nd_lt_100_20230215-1549
+u02_movements_el-ex_nd_lt_100_20230215-1554
+u02_movements_el-ex_nd_lt_100_20230215-1556
 
-# Label the windows
-labels = [df["MoveType"][i + window_size // 2] for i in range(0, num_windows * stride, stride)]
+"""
 
-# Split the windows into training and testing sets
-train_windows = windows[int(0.2 * num_windows):int(0.8 * num_windows)]
-train_labels = labels[int(0.2 * num_windows):int(0.8 * num_windows)]
-test_windows = windows[int(0.8 * num_windows):]
-test_labels = labels[int(0.8 * num_windows):]
+# # Remove any missing or outlier data
+# df = df.dropna()
+# df = df[np.abs(df["AccelroX"] - df["AccelroX"].mean())<=(3*df["AccelroX"].std())]
+# df = df[np.abs(df["AceelroY"] - df["AceelroY"].mean())<=(3*df["AceelroY"].std())]
+# df = df[np.abs(df["AceelroZ"] - df["AceelroZ"].mean())<=(3*df["AceelroZ"].std())]
+# df = df[np.abs(df["DMGrvY"] - df["DMGrvY"].mean())<=(3*df["DMGrvY"].std())]
 
-# # Create the plot with just windows
-# plot(windows, "DMGrvY")
-
-
+# # Normalise the data
+# scaler = preprocessing.StandardScaler()
+# df[["AccelroX", "AceelroY", "AceelroZ", "DMGrvY"]] = scaler.fit_transform(df[["AccelroX", "AceelroY", "AceelroZ", "DMGrvY"]])
 
 
-data = df.loc[int(0.25 * len(df)):int(0.75 * len(df))]
+# data = df.loc[int(0.25 * len(df)):int(0.75 * len(df))]
+data = df
 
 
 n = 150

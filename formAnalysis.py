@@ -11,7 +11,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split  
 
-training_file = "squatData"
+training_file = "squatData copy"
 testing_file = "10repBadform"
 
 
@@ -22,7 +22,7 @@ datacolumns = ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw",
 
 df = df[columns]
 
-testdf = pd.read_csv('GoodData/' + testing_file +'.csv')
+testdf = pd.read_csv('test.csv')
 
 testdf = testdf[columns]
 
@@ -65,8 +65,6 @@ def local_minima(X, interval):
     # Find local minima
     minima = argrelextrema(-feature8, np.less_equal, order=interval)[0]
 
-    print(len(minima))
-
     local_minima = []
     # print the local minima
     for min in minima:
@@ -92,7 +90,7 @@ def train_model(X, y, window_size, step_size):
     # interval = 160, window_size = windows, step_size = windows
     # However only sees 8 of the 10 reps in the test file
     
-    # Create and fit the random forest classifier
+    # # Create and fit the random forest classifier
     clf = RandomForestClassifier(n_estimators=100, random_state=42)
     clf.fit(X_train.reshape(X_train.shape[0], -1), y_train)
     
@@ -102,11 +100,6 @@ def train_model(X, y, window_size, step_size):
     # clf = SVC(kernel='linear', C=1, gamma='auto', random_state=42)
     # clf.fit(X_train.reshape(X_train.shape[0], -1), y_train)
     
-    # # 80.95% accuracy on trained data, 56.25% on new data
-    # # Create and fit the logistic regression classifier
-    # clf = LogisticRegression(max_iter=2000, random_state=42)
-    # clf.fit(X_train.reshape(X_train.shape[0], -1), y_train)
-    
     # # 83.33% accuracy on trained data, 75% on new data
     # # Create and fit the model
     # clf = KNeighborsClassifier(n_neighbors=5)
@@ -114,6 +107,8 @@ def train_model(X, y, window_size, step_size):
 
     # Make predictions on the testing data
     y_pred = clf.predict(X_test.reshape(X_test.shape[0], -1))
+    
+    print(y_pred)
     
     # Calculate the accuracy of the model
     acc = accuracy_score(y_test, y_pred)
@@ -140,10 +135,8 @@ X, y = clean_data(df, datacolumns)
 interval = 140
 windows = local_minima(X, interval)
 
-print(windows)
-
 window_size = windows
-step_size = windows
+step_size = int(windows)
 
 acc, clf = train_model(X, y, window_size, step_size)
 print("Accuracy against trained data: {:.2f}%".format(acc * 100))
@@ -151,6 +144,5 @@ print("Accuracy against trained data: {:.2f}%".format(acc * 100))
 # Clean the data and normalize
 X_new, y_new = clean_data(testdf, datacolumns)
 acc_new = test_model(clf, X_new, y_new, window_size, step_size)
-
 
 print("Accuracy on new data: {:.2f}%".format(acc_new * 100))

@@ -10,10 +10,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split  
 
-training_file = "squatData"
+training_file = "squatData copy"
 
-df = pd.read_csv('NewData/GoodForm.csv')
+# df = pd.read_csv('NewData/MissMatchedWeight2.csv')
 # df = pd.read_csv(training_file +'.csv')
+df = pd.read_csv('test.csv')
 
 columns = ["TimeStamp", "MoveType", "AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw", "DMGrvX", "DMGrvY", "DMGrvZ"]
 datacolumns = ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw", "DMGrvX", "DMGrvY", "DMGrvZ"]
@@ -61,8 +62,6 @@ def local_Minima(X, interval):
     # Find local minima
     minima = argrelextrema(-feature8, np.less_equal, order=interval)[0]
 
-    print(len(minima))
-
     local_minima = []
     # print the local minima
     for min in minima:
@@ -79,6 +78,8 @@ def plot_windows():
     
     interval = 140
     windows, minima, local_minima = local_Minima(X, interval)
+    
+    print(windows)
     
     window_size = windows
     step_size = windows

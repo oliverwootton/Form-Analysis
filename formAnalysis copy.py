@@ -1,11 +1,16 @@
 import pandas as pd
 import numpy as np
+import tensorflow as tf
+
 from sklearn.preprocessing import StandardScaler
 from scipy.signal import argrelextrema
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split  
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Reshape
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+
+from convert_data import str_to_int
 
 training_file = "squatData"
 testing_file = "10repBadform"
@@ -17,7 +22,7 @@ datacolumns = ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw",
 
 df = df[columns]
 
-testdf = pd.read_csv('GoodData/' + testing_file +'.csv')
+testdf = pd.read_csv('test.csv')
 
 testdf = testdf[columns]
 
@@ -60,8 +65,6 @@ def local_minima(X, interval):
     # Find local minima
     minima = argrelextrema(-feature8, np.less_equal, order=interval)[0]
 
-    print(len(minima))
-
     local_minima = []
     # print the local minima
     for min in minima:
@@ -77,23 +80,61 @@ def train_model(X, y, window_size, step_size):
     # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(windows_X, windows_y, test_size=0.2, random_state=42)
     
-    # Create and fit the random forest classifier
-    clf = RandomForestClassifier(n_estimators=100, random_state=42)
-    clf.fit(X_train.reshape(X_train.shape[0], -1), y_train)
+    n_features = len(datacolumns)
     
+    # Convert string labels to numerical labels
+    y_train = str_to_int(y_train)
+    y_test = str_to_int(y_test)
+    
+    
+    # Define the CNN architecture
+    model = tf.keras.models.Sequential([
+        # Add a convolutional layer
+        Conv1D(filters=32, kernel_size=3, activation='relu', input_shape=(284, 10)),
+        # Add a max pooling layer  
+        MaxPooling1D(pool_size=2),
+        # Add a flatten layer to convert the output from 3D to 2D
+        Flatten(),
+         # Add a dense layer
+        Dense(64, activation='relu'),
+        # Add the output layer
+        Dense(1, activation='softmax')
+    ])
+    
+    # compile the model
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    # Fit the model to the training data
+    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_train, y_train))
+
     # Make predictions on the testing data
-    y_pred = clf.predict(X_test.reshape(X_test.shape[0], -1))
+    y_pred = model.predict(X_test)
     
+    print('prediction')
+    print(y_pred)
+
     # Calculate the accuracy of the model
     acc = accuracy_score(y_test, y_pred)
-    return acc, clf
+    return acc, model
 
-def test_model(clf, X_new, y_new, window_size, step_size):
+def test_model(model, X_new, y_new, window_size, step_size):
     # Split the data into sliding windows
     windows_X_new, windows_y_new = sliding_window(X_new, y_new, window_size, step_size)
 
-    # Make predictions on the testing data
-    y_pred_new = clf.predict(windows_X_new.reshape(windows_X_new.shape[0], -1))
+    # # Reshape the data for use in the CNN
+    # windows_X_new = windows_X_new.reshape(windows_X_new.shape[0], window_size, len(datacolumns), 1)
+    
+    # Convert string labels to numerical labels
+    encoder = LabelEncoder()
+    windows_y_new = encoder.fit_transform(windows_y_new)
+
+    # Make predictions on the testing data using the CNN
+    y_pred_new = model.predict(windows_X_new)
+    
+    print(y_pred_new)
+    
+    # Convert the predictions from one-hot encoding to class labels
+    y_pred_new = np.argmax(y_pred_new, axis=1)
     
     print(y_pred_new)
 
@@ -112,12 +153,14 @@ windows = local_minima(X, interval)
 window_size = windows
 step_size = windows
 
-acc, clf = train_model(X, y, window_size, step_size)
-print("Accuracy against trained data: {:.2f}%".format(acc * 100))
+# train the CNN model on the dataset
+acc, model = train_model(X, y, window_size, step_size)
+print("Accuracy on the model with training data: {:.2f}%".format(acc * 100))
 
-# Clean the data and normalize
-X_new, y_new = clean_data(testdf, datacolumns)
-acc_new = test_model(clf, X_new, y_new, window_size, step_size)
+# # Clean the data and normalize
+# X_new, y_new = clean_data(testdf, datacolumns)
 
+# # Test the CNN model on the new data
+# acc_new = test_model(model, X_new, y_new, window_size, step_size)
 
-print("Accuracy on new data: {:.2f}%".format(acc_new * 100))
+# print("Accuracy on new data: {:.2f}%".format(acc_new * 100))

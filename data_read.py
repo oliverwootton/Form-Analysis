@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
 from scipy.signal import argrelextrema
 from scipy.signal import find_peaks
 
@@ -10,11 +10,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split  
 
-training_file = "squatData copy"
+training_file = "AllData"
 
-# df = pd.read_csv('NewData/MissMatchedWeight2.csv')
+# df = pd.read_csv('GoodData/3.csv')
 # df = pd.read_csv(training_file +'.csv')
-df = pd.read_csv('test.csv')
+df = pd.read_csv('test2.csv')
 
 columns = ["TimeStamp", "MoveType", "AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw", "DMGrvX", "DMGrvY", "DMGrvZ"]
 datacolumns = ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw", "DMGrvX", "DMGrvY", "DMGrvZ"]

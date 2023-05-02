@@ -137,8 +137,6 @@ def analyseForm(df, squatData, m):
     windows, minima, local_minima = local_Minima(X_test, interval)
     window_size = windows
     step_size = windows
-    print("Window size: " + str(window_size))
-    print("Step size: " + str(step_size))
     
     # Train the model on the training data
     model = train_model(X, y, window_size, step_size, m)

@@ -8,8 +8,11 @@ columns = ["TimeStamp", "MoveType", "AccelroX", "AceelroY", "AceelroZ", "DMPitch
 datacolumns = ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw", "DMGrvX", "DMGrvY", "DMGrvZ"]
 
 def plot_windows():
+    """
+    Plots sliding windows of a specified feature from preprocessed data.
+    """
     # Clean the data and normalize
-    X, y = clean_data(df, datacolumns)
+    X, y = preprocess_data(df, datacolumns)
     
     #  1            2           3           4           5        6        7         8         9
     # ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw", "DMGrvX", "DMGrvY", "DMGrvZ"]
@@ -17,6 +20,7 @@ def plot_windows():
     graph = X[:, n]
     
     # Find the peaks in the data to calulate the window size
+    # Interval sets the minimum distance between each peak
     interval = 100
     windows, minima, local_minima = local_Minima(X, interval)
     
@@ -59,8 +63,15 @@ def plot_windows():
     plt.show()
 
 def plot_data(data_required):
+    """
+    Plots three graphs of the specified data required from preprocessed data.
+
+    Parameters:
+        data_required: The index of the first feature of interest in the preprocessed data,
+        with valid values ranging from 0 to 2 inclusive.
+    """
     # Clean the data and normalize
-    X, y = clean_data(df, datacolumns)
+    X, y = preprocess_data(df, datacolumns)
     
     i = 1 + (3 * data_required)
     
@@ -80,7 +91,7 @@ def plot_data(data_required):
     plt.show()
 
 # Data to be displayed on the graph
-df = pd.read_csv('test2.csv')
+df = pd.read_csv('UnseenData/test2.csv')
 
 data = df
 df = df[columns]

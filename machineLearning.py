@@ -13,30 +13,13 @@ datacolumns = ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw",
 
 models = ["RF", "SVC", "KNN"]
 
-def rF(X_train, y_train):
-    # Create and fit the random forest classifier
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
-    return model
-
-def sVC(X_train, y_train):
-    # Create and fit the SVM classifier
-    model = SVC(kernel='linear', C=1, gamma='auto', random_state=42)
-    model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
-    return model
-
-def kNN(X_train, y_train):
-    # Create and fit the KNN model
-    model = KNeighborsClassifier(n_neighbors=5)
-    model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
-    return model    
-
-def train_model(X, y, window_size, step_size, m):
+def train_model(X, y, window_size, step_size, m, data_split=0.2):
+    
     # Split the data into sliding windows
     windows_X, windows_y = sliding_window(X, y, window_size, step_size)
 
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(windows_X, windows_y, test_size=0.5, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(windows_X, windows_y, test_size=data_split, random_state=42)
     
     if m == "RF":
         model = rF(X_train, y_train)
@@ -56,6 +39,20 @@ def train_model(X, y, window_size, step_size, m):
     return acc, f1, model
 
 def test_model(model, X_new, y_new, window_size, step_size):
+    """
+    Test a trained classification model on new data.
+
+    Parameters:
+        model : A trained classification model.
+        X_new : An array of the new data to make predictions on.
+        y_new : An array of the true labels for the new data.
+        window_size : The size of the sliding window used to split the data.
+        step_size : The step size used to slide the window over the data.
+
+    Returns:
+        acc_new : The accuracy score of the trained model on the new data.
+        f1 : The F1-score of the trained model on the new data.
+    """
     # Split the data into sliding windows
     windows_X_new, windows_y_new = sliding_window(X_new, y_new, window_size, step_size)
 
@@ -70,11 +67,79 @@ def test_model(model, X_new, y_new, window_size, step_size):
     
     return acc_new, f1
 
+def rF(X_train, y_train):
+    """
+    Trains a Random Forest classifier on the input data and returns the trained model.
+
+    Parameters:
+        X_train: An array (n_windows, window_size, n_features): The training input samples.
+        y_train: An array (n_samples): The labels for the windows.
+
+    Returns:
+        model: The trained Random Forest classifier model.
+    """
+    # Create and fit the random forest classifier
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
+    return model
+
+def sVC(X_train, y_train):
+    """
+    Trains a SVC model on the input data and returns the trained model.
+
+    Parameters:
+        X_train: An array (n_windows, window_size, n_features): The training input samples.
+        y_train: An array (n_samples): The labels for the windows.
+
+    Returns:
+        model: The trained SVC model.
+    """
+    # Create and fit the SVM classifier
+    model = SVC(kernel='linear', C=1, gamma='auto', random_state=42)
+    model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
+    return model
+
+def kNN(X_train, y_train):
+    """
+    Trains a KNN model on the input data and returns the trained model.
+
+    Parameters:
+        X_train: An array (n_windows, window_size, n_features): The training input samples.
+        y_train: An array (n_samples): The labels for the windows.
+
+    Returns:
+        model: The trained KNN model.
+    """
+    # Create and fit the KNN model
+    model = KNeighborsClassifier(n_neighbors=5)
+    model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
+    return model    
+
 # Evaluate the performance of the classification models
-def evaluate_classification(df, testdf, models):
+def evaluate_classification(training_file, test_file, data_split):
+    """
+    Evaluate the performance of different classification models on training and test data.
+
+    Parameters:
+        training_file: Path to the CSV file containing the training data.
+        test_file: Path to the CSV file containing the test data.
+        data_split: The percentage of the training data to use for validation.
+
+    Returns:
+        None: This function does not return anything. It prints the accuracy and F1-score
+        of each model on the training and test data.
+    """
+    # Read the data into data frames
+    df = pd.read_csv(training_file + ".csv")
+    testdf = pd.read_csv(test_file + ".csv")
+
+    # Remove any columns that are unnecessary 
+    df = df[columns]
+    testdf = testdf[columns]
+    
     # Clean the data and normalize
-    X, y = clean_data(df, datacolumns)
-    X_test, y_test = clean_data(testdf, datacolumns)
+    X, y = preprocess_data(df, datacolumns)
+    X_test, y_test = preprocess_data(testdf, datacolumns)
     
     # Set the interval for finding local minima
     interval = 100
@@ -90,7 +155,7 @@ def evaluate_classification(df, testdf, models):
         print("Training model: ", m)
 
         # Train the model on the training data
-        acc_train, f1_train,model = train_model(X, y, window_size, step_size, m)
+        acc_train, f1_train,model = train_model(X, y, window_size, step_size, m, data_split)
         
         # Test the model on the testing data
         acc_test, f1_test = test_model(model, X_test, y_test, window_size, step_size)
@@ -101,17 +166,12 @@ def evaluate_classification(df, testdf, models):
         print() 
 
 # Dataset to train the model
-training_file = "AllData"
+training_file = "Dataset/AllData"
 # Unseen test data (data not in the dataset file)
-test_file = "test1"
+test_file = "UnseenData/test1"
 
-# Read the data into data frames
-df = pd.read_csv(training_file + ".csv")
-testdf = pd.read_csv(test_file + ".csv")
-
-# Remove any columns that are unnecessary 
-df = df[columns]
-testdf = testdf[columns]
+# The training/testing data split for training the ML model (80:20)
+data_split = 0.2
   
 # Evaluate the performance of each model   
-results = evaluate_classification(df, testdf, models)
+results = evaluate_classification(training_file, test_file, data_split)

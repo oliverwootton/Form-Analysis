@@ -12,47 +12,97 @@ columns = ["TimeStamp", "MoveType", "AccelroX", "AceelroY", "AceelroZ", "DMPitch
 datacolumns = ["AccelroX", "AceelroY", "AceelroZ", "DMPitch", "DMRoll", "DMYaw", "DMGrvX", "DMGrvY", "DMGrvZ"]
 
 def rF(X_train, y_train):
-    # Create and fit the random forest classifier
+    """
+    Trains a Random Forest classifier on the input data and returns the trained model.
+
+    Parameters:
+        X_train: An array (n_windows, window_size, n_features): The training input samples.
+        y_train: An array (n_samples): The labels for the windows.
+
+    Returns:
+        model: The trained Random Forest classifier model.
+    """
     model = RandomForestClassifier(n_estimators=100, random_state=42)
     model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
     return model
 
 def sVC(X_train, y_train):
-    # Create and fit the SVM classifier
+    """
+    Trains a SVC model on the input data and returns the trained model.
+
+    Parameters:
+        X_train: An array (n_windows, window_size, n_features): The training input samples.
+        y_train: An array (n_samples): The labels for the windows.
+
+    Returns:
+        model: The trained SVC model.
+    """
     model = SVC(kernel='linear', C=1, gamma='auto', random_state=42)
     model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
     return model
 
-def kN(X_train, y_train):
-    # Create and fit the model
+def kNN(X_train, y_train):
+    """
+    Trains a KNN model on the input data and returns the trained model.
+
+    Parameters:
+        X_train: An array (n_windows, window_size, n_features): The training input samples.
+        y_train: An array (n_samples): The labels for the windows.
+
+    Returns:
+        model: The trained KNN model.
+    """
     model = KNeighborsClassifier(n_neighbors=5)
     model.fit(X_train.reshape(X_train.shape[0], -1), y_train)
     return model   
 
 def train_model(X, y, window_size, step_size, m):
+    """
+    Train a machine learning model using the given input data
+
+    Parameters:
+        X: The input features data
+        y: The labels on for the feature data
+        window_size: The size of the sliding window
+        step_size: The step size for the sliding window
+        m: The type of machine learning model to train. Must be one of 'RF', 'SVC', or 'KNN'.
+
+    Returns:
+        model: The trained machine learning model
+    """
     # Split the data into sliding windows
     windows_X, windows_y = sliding_window(X, y, window_size, step_size)
 
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(windows_X, windows_y, test_size=0.5, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(windows_X, windows_y, test_size=0.2, random_state=42)
     
     # Train the specific model
     if m == "RF":
         model = rF(X_train, y_train)
     elif m == "SVC":
         model = sVC(X_train, y_train)
-    elif m == "KN":
-        model = kN(X_train, y_train)
+    elif m == "KNN":
+        model = kNN(X_train, y_train)
     
     # Make predictions on the testing data
     y_pred = model.predict(X_test.reshape(X_test.shape[0], -1))
     
-    # Calculate the accuracy of the model
-    acc = accuracy_score(y_test, y_pred)
-    
-    return acc, model
+    return model
 
 def test_model(model, X_new, y_new, window_size, step_size):
+    """
+    Test a machine learning model on new data using sliding windows.
+
+    Parameters:
+        model: A trained machine learning model.
+        X_new: An array containing the unseen data's features.
+        y_new: An array containing the unseen data's target labels.
+        window_size: The integer of the sliding window.
+        step_size: The integer for the step size of the sliding window.
+
+    Returns:
+        y_pred_new: An array containing the predicted labels for the new data.
+    """
     # Split the data into sliding windows
     windows_X_new, windows_y_new = sliding_window(X_new, y_new, window_size, step_size)
 
@@ -62,9 +112,25 @@ def test_model(model, X_new, y_new, window_size, step_size):
     return y_pred_new
 
 def analyseForm(df, squatData, m):
+    """
+    Analyses the form of new input data using a machine learning model trained on existing data.
+
+    Parameters:
+        df: A pandas DataFrame containing the training data.
+        squatData: A pandas DataFrame containing the unseen input data.
+        m: A string specifying the machine learning model to use ("RF" for Random Forest, "SVC" for Support Vector 
+           Classification, or "KNN" for k-Nearest Neighbors).
+
+    Returns:
+        A tuple containing:
+        - An ndarray of predicted labels for the unseen input data.
+        - The number of local minima found in the new input data.
+        - The window size used for sliding window analysis.
+        - The step size used for sliding window analysis.
+    """
     # Clean the data and normalize
-    X, y = clean_data(df, datacolumns)
-    X_test, y_test = clean_data(squatData, datacolumns)
+    X, y = preprocess_data(df, datacolumns)
+    X_test, y_test = preprocess_data(squatData, datacolumns)
     
     # Set the interval for finding local minima
     interval = 100
@@ -75,7 +141,7 @@ def analyseForm(df, squatData, m):
     print("Step size: " + str(step_size))
     
     # Train the model on the training data
-    acc_train, model = train_model(X, y, window_size, step_size, m)
+    model = train_model(X, y, window_size, step_size, m)
 
     # Analyse the form of new input data
     y_prediction = test_model(model, X_test, y_test, window_size, step_size)
@@ -83,9 +149,9 @@ def analyseForm(df, squatData, m):
     return y_prediction, len(minima), window_size, step_size
 
 # Dataset to train the model
-training_file = "AllData"
+training_file = "Dataset/AllData"
 # Data to be analysed
-new_data = "testAll"
+new_data = "UnseenData/NewTest copy"
 
 # Read the data into data frames
 df = pd.read_csv(training_file + ".csv")
